@@ -19,22 +19,21 @@ func process() error {
 		return err
 	}
 
-	for {
-		select {
-		case ev := <-evStream:
-			// Recieved a message.
-			// Unmarshal it into a message struct.
-			// If an error occurs log it.
-			var u proto.User
-			if err := ev.Unmarshal(&u); err != nil {
-				logger.Errorf(fmt.Sprintf("error unmarshaling message. topic:%v. error:%v", topic, err))
-				return err
-			}
-
-			logger.Infof(fmt.Sprintf("Picked up a new message: ID:%s", ev.ID))
-			logger.Infof(fmt.Sprintf("Sending email to:%s", u.Name))
+	for ev := range evStream {
+		// Received a message.
+		// Unmarshal it into a message struct.
+		// If an error occurs log it.
+		var u proto.User
+		if err := ev.Unmarshal(&u); err != nil {
+			logger.Errorf(fmt.Sprintf("error unmarshaling message. topic:%v. error:%v", topic, err))
+			return err
 		}
+
+		logger.Infof(fmt.Sprintf("Picked up a new message: ID:%s", ev.ID))
+		logger.Infof(fmt.Sprintf("Sending email to:%s", u.Name))
 	}
+
+	return nil
 }
 
 func main() {
